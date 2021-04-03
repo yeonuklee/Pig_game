@@ -9,50 +9,81 @@ const diceEl = document.querySelector('.dice');
 const player0 = document.querySelector('.player--0');
 const player1 = document.querySelector('.player--1');
 let activePlayer = 0;
-const playing = true;
+let playing = true;
 
 diceEl.classList.add('hidden');
-score0.textContent = 0;
-score1.textContent = 0;
-current0 = 0;
-current1 = 0;
-//dice.style.display = 'none';
+let currentScore;
 
-const switchPlayer = function () {
+//default condition
+const defaultCondition = function () {
+  scores = [0, 0];
+  currentScore = 0;
+  current0.textContent = 0;
+  current1.textContent = 0;
+  score0.textContent = 0;
+  score1.textContent = 0;
+  playing = true;
+  diceEl.src = 'dice-1.png';
+
+  diceEl.classList.add('hidden');
+  player0.classList.remove('player--winner');
+  player1.classList.remove('player--winner');
+  player0.classList.add('player--active');
+  player1.classList.remove('player--active');
+};
+
+defaultCondition();
+
+//Switch users when a player encounters dice 1 or clicks hold button.
+const switchUser = function () {
+  activePlayer = activePlayer === 0 ? 1 : 0; //Switch the active player
   document.getElementById(`current--${activePlayer}`).textContent = 0;
-  scores[activePlayer] = 0; //?
-  activePlayer = activePlayer === 0 ? 1 : 0;
-  player0.classList.toggle('player--active'); //?? idk
+  currentScore = 0;
+  player0.classList.toggle('player--active');
   player1.classList.toggle('player--active');
 };
 
-const btnRoll = document
-  .querySelector('.btn--roll')
-  .addEventListener('click', function () {
-    if (scores[activePlayer] < 100) {
-      let dice = Math.trunc(Math.random() * 6) + 1;
-      diceEl.classList.remove('hidden');
-      diceEl.src = `dice-${dice}.png`;
+//Dice hold button
+document.querySelector('.btn--hold').addEventListener('click', function () {
+  diceEl.src = 'dice-1.png';
 
-      if (dice !== 1) {
-        scores[activePlayer] += dice;
-        document.getElementById(
-          `current--${activePlayer}` // building id name dynamically
-        ).textContent = scores[activePlayer];
-      } else {
-        console.log(dice);
-        switchPlayer();
-      }
+  //Hold button works only when the game is still playing.
+  if (playing) {
+    scores[activePlayer] += currentScore;
+    document.getElementById(`score--${activePlayer}`).textContent =
+      scores[activePlayer];
+    document.getElementById(`current--${activePlayer}`).textContent = 0;
+  }
+  //If the score is higher than 20, that player wins.
+  if (Number(score0.textContent) >= 20) {
+    document
+      .querySelector(`.player--${activePlayer}`)
+      .classList.add('player--winner');
+    document
+      .querySelector(`.player--${activePlayer}`)
+      .classList.remove('player--active');
+    console.log('win!');
+    playing = false; //To stop playing
+  } else switchUser();
+});
+
+//Dice rolling
+document.querySelector('.btn--roll').addEventListener('click', function () {
+  if (playing) {
+    diceEl.classList.remove('hidden');
+    let diceNumber = Math.trunc(Math.random() * 6 + 1); //Generate the random number 1~6
+    diceEl.src = `dice-${diceNumber}.png`; //Display the proper dice picture
+
+    if (diceNumber !== 1) {
+      currentScore += diceNumber;
+      document.getElementById(
+        `current--${activePlayer}`
+      ).textContent = currentScore;
+    } else if (diceNumber == 1) {
+      //If the user gets dice 1, change the user and lose all the current score!!!!!!!!
+      switchUser();
     }
-    //else win!
-  });
-const btnHold = document
-  .querySelector('.btn--hold')
-  .addEventListener('click', function () {
-    if (score[activePlayer] < 100) {
-      current[activePlayer] += scores[activePlayer];
-      scores[activePlayer] = 0;
-      switchPlayer();
-    }
-    // else win
-  });
+  }
+});
+//To start the new game.
+document.querySelector('.btn--new').addEventListener('click', defaultCondition);
